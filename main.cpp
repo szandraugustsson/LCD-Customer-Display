@@ -3,6 +3,10 @@
 #include <avr/interrupt.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdlib.h>
+#include <time.h>
+#include <string.h>
+
 #include "lcd.h"
 #include "uart.h"
 
@@ -22,7 +26,68 @@
 
 #define BUTTON_IS_CLICKED(PINB,BUTTON_PIN) !BIT_CHECK(PINB,BUTTON_PIN)
 
- 
+
+ typedef struct{
+    char message[36];
+} Message;
+
+typedef struct {
+    Message* messages;
+    int messageCount;
+    int paid;
+} Customer;
+
+/*
+\xE0 -> å
+
+\xE1 -> ä
+
+\xEF -> ö
+*/
+
+    // Hederlige Harrys Bilar
+Message harryMessages[] = {
+    {"K\xEFp bil hos Harry"},
+    {"En god bilaff\xE1r (f\xEFr Harry!)"},
+    {"Hederlige Harrys Bilar"}
+};
+Customer harry = {harryMessages, 3, 5000}; //messages array, number of messages, paid amount
+    
+// Farmor Ankas Pajer AB
+Message ankaMessages[] = {
+    {"K\xEFp paj hos Farmor Anka"},
+    {"Skynda innan M\xE0rten \xE1tit alla pajer"}
+};
+Customer anka = {ankaMessages, 2, 3000};
+
+// Svarte Petters Svartbyggen
+Message petterMessages[] = {
+    {"L\xE0t Petter bygga \xE0t dig"},
+    {"Bygga svart? Ring Petter"}
+};
+Customer petter = {petterMessages, 2, 1500};
+
+// Långbens detektivbyrå
+Message langbenMessages[] = {
+    {"Mysterier? Ring L\xE0ngben"},
+    {"L\xE0ngben fixar biffen"}
+};
+Customer langben = {langbenMessages, 2, 4000};
+
+// IOT:s Reklambyrå
+Message iotMessages[] = {
+    {"Synas h\xE1r? IOT:s Reklambyr\xE0"}
+};
+Customer iot = {iotMessages, 1, 1000};
+
+//instead of hardcoding inside elif, cleaner code
+int customer1 = harry.paid;
+int customer2 = customer1 + anka.paid;
+int customer3 = customer2 + petter.paid;
+int customer4 = customer3 + langben.paid;
+
+
+int lastCustomer = -1; //no customer selected at start
 
 int main(void){
     init_serial();
@@ -31,57 +96,48 @@ int main(void){
     lcd.Initialize(); // Initialize the LCD
     lcd.Clear();      // Clear the LCD
 
-    lcd.WriteText((char *)"Hej hej");
-    printf("Hej hej\n");
-    int r = 12;
-    printf("Hej 2 %d\n",r);
-    // // //Sätt till INPUT_PULLUP
-    // BIT_CLEAR(DDRB,BUTTON_PIN); // INPUT MODE
-    // BIT_SET(PORTB,BUTTON_PIN); 
+    while (1) {
+        Customer* selectedCustomer;
+        int customerIndex;
+        lastCustomer = customerIndex;
 
-    // DATA DIRECTION = avgör mode
-    // om output så skickar vi  1 eller 0 på motsvarande pinne på PORT
-    // om input så läser vi  1 eller 0 på motsvarande pinne på PIN
-    //bool blinking = false;
-    while(1){
-        /*
+        do {
+//===========testing with more characters than screen can show============
+            // lcd.WriteText(ankaMessages[1].message);
+            // _delay_ms(5000);
+            
+            int r = rand() % 14500; //generate random number between 0 and total paid amount (14500)
+            printf("Random number: %d\n", r); //display generated number for debugging (and curiosity)
+            if (r < customer1) {
+                selectedCustomer = &harry;
+                customerIndex = 0;
+            } 
+            else if (r < customer2) {
+                selectedCustomer = &anka;
+                customerIndex = 1;
+            } 
+            else if (r < customer3) {
+                selectedCustomer = &petter;
+                customerIndex = 2;
+            } 
+            else if (r < customer4) {
+                selectedCustomer = &langben;
+                customerIndex = 3;
+            } 
+            else {
+                selectedCustomer = &iot;
+                customerIndex = 4;
+            }
+        } while (customerIndex == lastCustomer);//prevents repeating the same customer twice in a row
 
-        1. En struct med kund: betalning, namn
-        2. En struct med reklamtext (text mot rätt kund)
-        3. Reklamtid = 20sek (FRÅGA: sleep är olika på olika os..?)
-        4. Slumpa fram kund, beroende på betalning. rand().
-        5. Om vi har tid: Skrolla/rulla texten.
+        int messageIndex = rand() % selectedCustomer->messageCount;
+        char* message = selectedCustomer->messages[messageIndex].message;
+        
+        lcd.WriteText(message);
 
-Hederlige Harrys Bilar:
-Betalat 5000. Vill slumpmässigt visa en av tre meddelanden
-"Köp bil hos Harry"  (scroll)
-"En god bilaffär (för Harry!)" text
-"Hederlige Harrys Bilar" text (blinkande)
- 
-Farmor Ankas Pajer AB:
-Betalat 3000. Vill slumpmässigt visa en av två
-"Köp paj hos Farmor Anka"  (scroll)
-"Skynda innan Mårten ätit alla pajer" text
- 
-Svarte Petters Svartbyggen:
-Betalat 1500. Vill visa
-"Låt Petter bygga åt dig"  (scroll) - på jämna minuter
-"Bygga svart? Ring Petter" text - på ojämna minuter
- 
-Långbens detektivbyrå:
-Betalat 4000. Vill visa
-"Mysterier? Ring Långben"  text 
-"Långben fixar biffen" text 
- 
-Ibland måste vi visa reklam för oss själva:
-motsvarande för 1000 kr. 
-Meddelande "Synas här? IOT:s Reklambyrå"
-
-        */
-
-
-    
+        _delay_ms(5000); //TEMPORARY DELAY SO I DONT HAVE TO WAIT 20 FKJQWEBNFLQKWE SECONDS FOR THE MESSAGE TO CHANGE
+        lcd.Clear();
     }
-
-    return 0;
+return 0;
 }
+        
