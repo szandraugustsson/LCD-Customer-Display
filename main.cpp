@@ -3,6 +3,8 @@
 #include <avr/interrupt.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <string.h>
+#include <stdlib.h> //rand()
 #include "lcd.h"
 #include "uart.h"
 
@@ -19,12 +21,47 @@
 #define BIT_FLIP(a,b) ((a) ^= (1ULL<<(b)))
 #define BIT_CHECK(a,b) (!!((a) & (1ULL<<(b)))) 
 
-
 #define BUTTON_IS_CLICKED(PINB,BUTTON_PIN) !BIT_CHECK(PINB,BUTTON_PIN)
 
- 
+typedef struct{
+    char message[50];
+} Message;
+
+typedef struct{
+    Message messages[3];
+    int paid;
+    int messageCount;
+} Customer;
 
 int main(void){
+    
+    Customer customers[5];
+
+    customers[0].paid = 5000; //Hederlige Harrys Bilar
+    strcpy(customers[0].messages[0].message, "Köp bil hos Harry");
+    strcpy(customers[0].messages[1].message, "En god bilaffär (för Harry!)");
+    strcpy(customers[0].messages[2].message, "Hederlige Harrys Bilar");
+    customers[0].messageCount = 3;
+
+    customers[1].paid = 3000; //Farmor Ankas Pajer AB
+    strcpy(customers[1].messages[0].message, "Köp paj hos Farmor Anka");
+    strcpy(customers[1].messages[1].message, "Skynda innan Mårten ätit alla pajer");
+    customers[1].messageCount = 2;
+
+    customers[2].paid = 1500; //Svarte Petters Svartbyggen
+    strcpy(customers[2].messages[0].message, "Låt Petter bygga åt dig");
+    strcpy(customers[2].messages[1].message, "Bygga svart? Ring Petter");
+    customers[2].messageCount = 2;
+
+    customers[3].paid = 4000; //Långbens detektivbyrå
+    strcpy(customers[3].messages[0].message, "Mysterier? Ring Långben");
+    strcpy(customers[3].messages[1].message, "Långben fixar biffen");
+    customers[3].messageCount = 2;
+
+    customers[4].paid = 1000; //för oss själva
+    strcpy(customers[4].messages[0].message, "Synas här? IOT:s Reklambyrå");
+    customers[4].messageCount = 1;
+
     init_serial();
     HD44780 lcd;
 
@@ -40,48 +77,66 @@ int main(void){
     // BIT_SET(PORTB,BUTTON_PIN); 
 
     // DATA DIRECTION = avgör mode
-    // om output så skickar vi  1 eller 0 på motsvarande pinne på PORT
+    // om output så skickar vi 1 eller 0 på motsvarande pinne på PORT
     // om input så läser vi  1 eller 0 på motsvarande pinne på PIN
     //bool blinking = false;
-    while(1){
-        /*
 
-        1. En struct med kund: betalning, namn
-        2. En struct med reklamtext (text mot rätt kund)
-        3. Reklamtid = 20sek (FRÅGA: sleep är olika på olika os..?)
-        4. Slumpa fram kund, beroende på betalning. rand().
-        5. Om vi har tid: Skrolla/rulla texten.
+    //deklarerar variabeln utanför while-loopen för att det ska minnas
+    int lastCustomer;
 
-Hederlige Harrys Bilar:
-Betalat 5000. Vill slumpmässigt visa en av tre meddelanden
-"Köp bil hos Harry"  (scroll)
-"En god bilaffär (för Harry!)" text
-"Hederlige Harrys Bilar" text (blinkande)
- 
-Farmor Ankas Pajer AB:
-Betalat 3000. Vill slumpmässigt visa en av två
-"Köp paj hos Farmor Anka"  (scroll)
-"Skynda innan Mårten ätit alla pajer" text
- 
-Svarte Petters Svartbyggen:
-Betalat 1500. Vill visa
-"Låt Petter bygga åt dig"  (scroll) - på jämna minuter
-"Bygga svart? Ring Petter" text - på ojämna minuter
- 
-Långbens detektivbyrå:
-Betalat 4000. Vill visa
-"Mysterier? Ring Långben"  text 
-"Långben fixar biffen" text 
- 
-Ibland måste vi visa reklam för oss själva:
-motsvarande för 1000 kr. 
-Meddelande "Synas här? IOT:s Reklambyrå"
+    while(1)
+    {
+        // Get a customer!
+        // Ta alla kunder och summera deras betalningar
+        // harry har 5000 lotter (0-4999)
+        // petter har 2000 lotter (5000-6999)
+        // kajsa har 1000 lotter (7000-7999)
+        // slumpa fram ett nummer mellan 0 och 7999
+        // kolla vilken kund som har det numret
 
-        */
+        // Summera betalningar så att vi ska veta maxvärdet
+        int sumPaid = 0;
+        for (int i = 0; i < 5; i++)
+            sumPaid += customers[i].paid;
 
+        // Slumpa fram ett nummer mellan 0 och summan av betalningar
+        int randNum = rand() % sumPaid;
 
-    
+        // för att veta vilken kund randNum tillhör
+        int selectedCustomer;
+        int sum = 0;
+        for (int i = 0; i < 5; i++) 
+        {
+            sum += customers[i].paid;
+            if (randNum < sum)
+            {
+                selectedCustomer = i;
+                break;
+            }
+        }
+
+        //om det slumpar fram samma kund, ska det börja om loopen
+        if (selectedCustomer == lastCustomer)
+        {
+            continue;
+        }
+        
+        // Slumpa fram ett index från selectedCustomer och skriva ut meddelandet som ligger på index messageIndex
+        int messageIndex = rand() % customers[selectedCustomer].messageCount;
+
+        lcd.Clear(); //rensa hela display innan ny text
+        lcd.WriteText(customers[selectedCustomer].messages[messageIndex].message);
+        printf("%s\n", customers[selectedCustomer].messages[messageIndex]);
+
+        // vänta 20 sekunder (20 000 ms)
+        // maxvärdet beror på CPU-hastigheten 16 MHz på Arduino Uno
+        // _delay_ms() klarar bara 262 ms per anrop, därför använda for loop
+        for (int i = 0; i < 100; i++)
+        {
+            _delay_ms(200); //på AVR-mikrokontroller kan man inte använda sleep()
+        }
+
+        lastCustomer = selectedCustomer;
     }
-
     return 0;
 }
