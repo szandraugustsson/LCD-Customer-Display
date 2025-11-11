@@ -83,7 +83,26 @@ int main(void){
 
     //deklarerar variabeln utanför while-loopen för att det ska minnas
     int lastCustomer;
+/*
 
+ewrg
+werg
+rweg
+
+this is a comment to see what is changed
+after editing in github codespace
+
+werg
+werg
+werg
+we
+rgwe
+rgewr
+g
+werg
+wer
+g
+*/
     while(1)
     {
         // Get a customer!
