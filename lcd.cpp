@@ -21,9 +21,9 @@ void HD44780::WriteData(unsigned char data) {
 void HD44780::WriteText(char *text) {
   int charCount = 0; // Track the number of characters printed
   while (*text) {
-    if (charCount == 16) { // Move to the second line after 16 characters
-      GoTo(0, 1);
-    } 
+//    if (charCount == 16) { // Move to the second line after 16 characters
+//      GoTo(0, 1);
+//    } 
     // else if (charCount ==
     //            32) { // Reset if more than 32 characters (display size)
     //   Clear();       // Clear the display

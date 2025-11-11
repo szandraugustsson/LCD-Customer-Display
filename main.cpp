@@ -70,12 +70,12 @@ int main(void){
     strcpy(user[4].message[0].message, "Synas h\xE1r? IOT:s Reklambyra");
 
     // get the sum of all payment (used for rand)
-    int userToPresent = -1; 
     int sum = 0;
     for (int i = 0; i < 5; i++){
         sum += user[i].paid;
     }
 
+    int userToPresent = NULL;
 
     while(1){
 
@@ -106,20 +106,26 @@ int main(void){
         // SCROLL FUNCTION + delay
         int cnt = 0;
 
-        // two 'complete scrolls'
+        // two complete scrolls
         while (cnt < 2){
             cnt++;
             char *txt = user[userToPresent].message[textIndex].message;
 
-            // scroll 15 steps each.
-            for (int i = 0; i < 15; i++){
-                // Clear the LCD
-                lcd.Clear();      
+            // scroll 20 steps
+            for (int i = 0; i < (strlen(user[userToPresent].message[textIndex].message)+15); i++){
+
+                if (i < 15){
+                    // set LCD position
+                    lcd.GoTo(15-i,0);
+                } else {
+                    // Clear the LCD
+                    lcd.Clear();
+                    txt++;
+                }
 
                 // write LCD text
-                lcd.WriteText((char *)txt+i);
-                
-                _delay_ms(485);
+                lcd.WriteText((char *)txt);
+                _delay_ms(150);
             
             }
         }
