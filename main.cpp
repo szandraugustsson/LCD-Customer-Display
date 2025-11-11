@@ -19,6 +19,24 @@
 #define BIT_CHECK(a,b) (!!((a) & (1ULL<<(b)))) 
 #define BUTTON_IS_CLICKED(PINB,BUTTON_PIN) !BIT_CHECK(PINB,BUTTON_PIN)
 
+/*
+hejh
+werg
+wer
+gwer
+gwer
+gwer
+gwe
+rg
+wergploikwejkrgpoöwehjrgölkwerg
+we
+rgwerpögjwergjklwerg
+lwkerngölwenrg
+
+*/
+
+
+
 typedef struct{
     char message[40];
 }Message;
