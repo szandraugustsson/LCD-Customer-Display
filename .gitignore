@@ -6,3 +6,4 @@ Makefile
 /avrdemo.hex
 /avrdemo.map
 /bin
+/.vscode
