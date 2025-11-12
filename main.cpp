@@ -38,6 +38,11 @@ typedef struct
 }
 Customer;      // Struct - varje instans innehåller 1 kund
 
+typedef struct 
+{
+    int 
+}
+
 //--------------------------------FUNTIONS--------------------------------------
 void CGRAM(char *InStr)
 {
@@ -150,7 +155,7 @@ int main(void)
     strcpy(customers[2].messages[0].AdMessage,"Låt Petter bygga åt dig");  // 8000-8749
     strcpy(customers[2].messages[1].AdMessage,"Bygga svart? Ring Petter"); // 8750-9499
     
-    //strcpy(customers[3].name, "Långbens detektivbyrå");
+    //strcpy(customers[3].name, "Långbens detektivbyrå"); Dennis
     customers[3].paid = 4000;                   
     customers[3].messageCount = 2;
     
@@ -166,9 +171,54 @@ int main(void)
     srand(time(NULL));
     
     //--------------------------------------------------------------------------------
-    ScrollL2R(lcd,customers[0].messages[0].AdMessage);
-
+    // ScrollL2R(lcd,customers[3].messages[1].AdMessage);
     
+    CGRAM(customers[3].messages[1].AdMessage);
+
+
+//void FadeIn(char *inputStr) 
+lcd.Clear();
+char inputStr[sizeof(customers[3].messages[1].AdMessage)];
+memset(inputStr,0,sizeof(inputStr));
+strcpy(inputStr,customers[3].messages[1].AdMessage);
+
+    // Iteration for printing singular row masks of lcd bitmaps
+
+    for(int i = 0; i < strlen(inputStr); i++)
+    {   
+         
+        uint8_t slicedChar = inputStr[i];  // All 8 rows(array) of currently iterated char 
+        uint8_t tmpBit[8] = { 0b00000,0b00000,0b00000,0b00000,0b00000,0b00000,0b00000,0b00000 }; // Blank custom char assigned to CGRAM-slot 0
+        for(int j = 0; j < 8; j++)
+            {
+                //if(tmpBit[j] == 0b00000) 
+            tmpBit[0] = (slicedChar >> j) & 0x01;
+            lcd.WriteData(0);
+            }
+        
+        lcd.CreateChar(0, tmpBit);
+        _delay_ms(300);
+        
+        lcd.WriteData(customers[3].messages[1].AdMessage[0]);
+        lcd.GoTo(0,0);
+    }
+    lcd.WriteText(customers[3].messages[1].AdMessage);
+
+
+/*
+Jag vill:
+
+lcd.CreateChar(0, tmpBit); // skapa custom som innehåller rad1 av bitmap
+lcd.WriteData(0)           // printa den  
+lcd.CreateChar(0, tmpBit); // skapa custom (i samma slot) som innehåller rad1+rad2 av bitmap(?)
+lcd.WriteData(0)           // printa den
+-II- tot. * 7  // repetera tills hela bokstaven är klar
+lcd.WriteText  // printa index 0 av sträng
+-----------------II------------// Repetera tills hela strängen är utskriven
+
+*/
+
+
     // while(1)
     // {
         //     int RandNum = rand() % 14500;
