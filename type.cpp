@@ -5,47 +5,54 @@
 #include <stdbool.h>
 #include <string.h> //strlen()
 #include <stdlib.h> //rand()
+#include <time.h>
+
 #include "lcd.h"
 #include "uart.h"
 #include "customer.h"
 #include "type.h"
+#include "sweep.h"
 
 
-void typeAnimation() {
-    init_serial();
-    HD44780 lcd;
-    lcd.Initialize(); // Initialize the LCD
 
-    //create customers and pick random message
-    Customer user[5];
-    createCustomers(user);
-    int sum = totalPaid(user);
-    int userToPresent = -1;
-    userToPresent = randomCustomer(user, sum, userToPresent);
-    int textIndex = rand() % user[userToPresent].messagesCount;
+void randomDelay() {
+    int r = rand() % 3; //Pick random delay to simulate real typing
+    switch(r) {
+        case 0:
+            return _delay_ms(50);
+        case 1:
+            return _delay_ms(150);
+        case 2:
+            return _delay_ms(300);
+        default:
+            return _delay_ms(150);
+    }
+}
 
-    const char* msg = user[userToPresent].message[textIndex].message;
-    printf("Type Animation for: %d | Text id: %d\n", userToPresent, textIndex);
+void typeAnimation(HD44780 &lcd, const char* msg) {
 
-    lcd.Clear();
     lcd.GoTo(0, 0);
-
+    
     int charCount = 0;
     while (*msg) {
         lcd.WriteData(*msg++);
         charCount++;
-        _delay_ms(200); // Delay between characters
+        randomDelay();
 
         if (charCount >= 16) {
             lcd.GoTo(0, 1); // Move to second line after 16 chars
             charCount = 0; // Reset count for second line
             lcd.WriteData(*msg++);
             charCount++;
-            _delay_ms(200);
+            randomDelay();
+        }
+
+        if (msg[-1] == ',' || msg[-1] == '.' || msg[-1] == '!' || msg[-1] == '?') {
+            _delay_ms(500); // Longer delay at punctuation
         }
     }
 
     _delay_ms(3000); // Wait before clearing
-    lcd.Clear();
+    sweepAnimation(lcd);
 
 }

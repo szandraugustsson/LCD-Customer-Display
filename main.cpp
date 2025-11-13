@@ -5,10 +5,13 @@
 #include <stdbool.h>
 #include <string.h> //strlen()
 #include <stdlib.h> //rand()
+#include <time.h>
+
 #include "lcd.h"
 #include "uart.h"
 #include "customer.h"
 #include "type.h"
+#include "sweep.h"
 
 // https://wokwi.com/projects/416241646559459329
 
@@ -22,7 +25,7 @@
 #define BUTTON_IS_CLICKED(PINB,BUTTON_PIN) !BIT_CHECK(PINB,BUTTON_PIN)
 
 int main(void){
-
+    srand(time(NULL)); //random seed, prevents the same sequence every time the program runs
     init_serial();
     HD44780 lcd;
     lcd.Initialize(); // Initialize the LCD
@@ -30,36 +33,42 @@ int main(void){
     // create all (5) customers.
     Customer user[5];
     createCustomers(user);
+
     // get the sum of all payment (used for rand)
     int sum = totalPaid(user);
 
     int userToPresent = -1;
+
     while(1){
+
+       // pick a random customer
         userToPresent = randomCustomer(user, sum, userToPresent);
-        
-        // get a random text (index)
         int textIndex = rand() % user[userToPresent].messagesCount;
+
+        const char* msg = user[userToPresent].message[textIndex].message;
+
         printf("Now presenting: %d | Text id: %d\n", userToPresent, textIndex);
 
+        typeAnimation(lcd, msg);  // type + sweep animation
         // SCROLL FUNCTION + delay
-        int cnt = 0;
+        // int cnt = 0;
 
-        // two 'complete scrolls'
-        while (cnt < 2){
-            cnt++;
-            char *txt = user[userToPresent].message[textIndex].message;
+        // // two 'complete scrolls'
+        // while (cnt < 2){
+        //     cnt++;
+        //     char *txt = user[userToPresent].message[textIndex].message;
 
-            // scroll 15 steps each.
-            for (int i = 0; i < 15; i++){
-                // Clear the LCD
-                lcd.Clear();      
+        //     // scroll 15 steps each.
+        //     for (int i = 0; i < 15; i++){
+        //         // Clear the LCD
+        //         lcd.Clear();      
 
-                // write LCD text
-                lcd.WriteText(txt+i);
+        //         // write LCD text
+        //         lcd.WriteText(txt+i);
                     
-                _delay_ms(485);
-            }        
-        } 
+        //         _delay_ms(485);
+        //     }        
+        // }
     }
     return 0;
 }
