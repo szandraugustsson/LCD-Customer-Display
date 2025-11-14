@@ -246,7 +246,7 @@ uint8_t SPACE[8] = { 0b00000, 0b00000, 0b00000, 0b00000, 0b00000, 0b00000, 0b000
                 if     (i<16) {Row = 0; lcd.GoTo(i,Row); }
                 else if(i>=16) {Row = 1; lcd.GoTo(i-Step,Row);}
                 lcd.WriteData(0); // 0 = tmpBit      // Varje iteration printar  tmpBit
-                _delay_ms(5);
+                _delay_ms(500);
                 }    
 
         if     (i<16) {Row = 0; lcd.GoTo(i,Row); }
