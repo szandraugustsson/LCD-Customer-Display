@@ -51,7 +51,7 @@ int main(void){
             char *txt_L = user[userToPresent].message[textIndex].message;
 
             // scroll to txt ends (roll out of screen)
-            for (int i = 0; i < (strlen(user[userToPresent].message[textIndex].message)+DISPLEN+1); i++){
+            for (int i = 0; i < (strlen(txt_L)+DISPLEN+1); i++){
 
                 if (i <= DISPLEN){
                     snprintf(txt_R,i+1,txt_L);
@@ -62,7 +62,6 @@ int main(void){
                     lcd.Clear();
                     lcd.WriteText((char *)txt_L+i-DISPLEN);
                 }
-
                 _delay_ms(130);
             }
         }
