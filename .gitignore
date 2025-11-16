@@ -1,3 +1,7 @@
 /avrdemo.hex
 /avrdemo.map
 /bin
+*.hex
+*.map
+.DS_Store
+Makefile
