@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <string.h> //strlen()
 #include <stdlib.h> //rand()
+#include <time.h> //rand()
 #include "lcd.h"
 #include "uart.h"
 #include "customer.h"
@@ -23,7 +24,7 @@
 #define DISPLEN 16
 
 int main(void){
-
+    srand(time(NULL));
     init_serial();
     HD44780 lcd;
     lcd.Initialize(); // Initialize the LCD
@@ -51,14 +52,13 @@ int main(void){
         if (textIndex == 0 && (userToPresent == 0 || userToPresent == 1 || userToPresent == 2)){
             scrollText(&lcd, txt);
         }
-        else{
-            lcd.GoTo(0,0);
-            lcd.WriteText(txt);
-
+        else {
+            typeAnimation(lcd, txt);
             for (int i = 0; i < 100; i++){
                 _delay_ms(50);
             }
         }
+        sweepAnimation(lcd);
     }
     return 0;
 }

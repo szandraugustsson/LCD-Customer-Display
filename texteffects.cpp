@@ -1,6 +1,8 @@
 #include <stdio.h> //sprintf()
 #include <string.h> //strlen()
 #include <util/delay.h> //_delay_ms()
+#include <time.h>
+#include <stdlib.h> //rand()
 #include "lcd.h"
 #include "customer.h"
 #include "texteffects.h"
@@ -72,4 +74,72 @@ void FixSpecChar(char *InStr){ // Döpte om från CGRAM till FixSpecChar
     // Man kan alltså kalla funktionen som FixSpecChar(Min-Sträng-Var)
     memset(InStr, 0, lengthOfText + 1);
     strcpy(InStr, OutStr);
+}
+
+
+//slumpa delay till typeAnimation
+void randomDelay() {
+    int r = rand() % 3; //Pick random delay to simulate real typing
+    switch(r) {
+        case 0:
+            return _delay_ms(70);
+        case 1:
+            return _delay_ms(100);
+        case 2:
+            return _delay_ms(130);
+        default:
+            return _delay_ms(100);
+    }
+}
+//Animation to "transition" into new text (work in progress)
+void sweepAnimation(HD44780 &lcd) {
+
+    const char sweepChar = '#';
+    const char blankChar = ' ';
+
+    //sweep forward
+    for(int i = 0; i < 16; i++) {
+        lcd.GoTo(i, 0);
+        lcd.WriteData(sweepChar);
+
+        lcd.GoTo(i, 1);
+        lcd.WriteData(sweepChar);
+
+        _delay_ms(20);
+    }
+    //sweep backward (clear)
+    for(int i = 16; i >= 0; i--) {
+        lcd.GoTo(i, 0);
+        lcd.WriteData(blankChar);
+
+        lcd.GoTo(i, 1);
+        lcd.WriteData(blankChar);
+
+        _delay_ms(20);
+    }
+} 
+
+//text-animation to simulate typing
+void typeAnimation(HD44780 &lcd, char* txt) {
+
+    lcd.GoTo(0, 0);
+    
+    int charCount = 0;
+    while (*txt) {
+        lcd.WriteData(*txt++);
+        charCount++;
+        randomDelay();
+
+        if (charCount >= 16) {
+            lcd.GoTo(0, 1); // Move to second line after 16 chars
+            charCount = 0; // Reset count for second line
+            lcd.WriteData(*txt++);
+            charCount++;
+            randomDelay();
+        }
+
+        if (txt[-1] == ',' || txt[-1] == '.' || txt[-1] == '!' || txt[-1] == '?') {
+            _delay_ms(500); // Longer delay at punctuation
+        }
+    }
 }
